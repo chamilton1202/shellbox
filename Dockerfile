@@ -31,15 +31,15 @@ COPY bin/ ${APP_ROOT}/bin/
 COPY s2i-settings.xml ${APP_ROOT}/.m2/settings.xml
 
 ##Add the Source Code
-COPY aqgservices/ ${APP_ROOT}/aqgservices/
+#COPY somesource/ ${APP_ROOT}/somesource/
 
-##Add the Apria Certificate
-COPY apria.cer ${APP_ROOT}/apria.cer
-RUN echo yes | keytool -import -alias apria \
--keystore /usr/lib/jvm/jre-openjdk/lib/security/cacerts \
--file ${APP_ROOT}/apria.cer \
--storepass changeit \
--trustcacerts
+##Add the Certificate to the Java KeyStore
+#COPY Cert.cer ${APP_ROOT}/Cert.cer
+#RUN echo yes | keytool -import -alias ACompany \
+#-keystore /usr/lib/jvm/jre-openjdk/lib/security/cacerts \
+#-file ${APP_ROOT}/Cert.cer \
+#-storepass changeit \
+#-trustcacerts
 
 RUN chmod -R u+x ${APP_ROOT}/bin && \
     chgrp -R 0 ${APP_ROOT} && \
