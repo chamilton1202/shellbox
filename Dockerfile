@@ -1,55 +1,64 @@
+#FROM docker-registry.default.svc:5000/shellbox/s2i-core-centos7
 FROM centos:centos7
 
 USER root
 
-RUN yum install -y git vim wget curl && \
-	yum install -y java-1.8.0-openjdk-devel && \
-	yum clean all -y
-
-RUN wget http://apache.claz.org/maven/maven-3/3.6.3/binaries/apache-maven-3.6.3-bin.tar.gz -P /tmp && \
-	tar -xvf /tmp/apache-maven-3.6.3-bin.tar.gz -C /opt && \
-	rm -f /tmp/apache-maven-3.6.3-bin.tar.gz && \
-	ln -s /opt/apache-maven-3.6.3 /opt/maven
-
-RUN echo <<EOF \
-#!/bin/bash \
-export JAVA_HOME=/usr/lib/jvm/jre-openjdk \
-export M2_HOME=/opt/maven \
-export MAVEN_HOME=/opt/maven \
-export PATH=${M2_HOME}/bin:${PATH} \
-EOF>> /etc/profile.d/maven.sh
-
-RUN chmod +x /etc/profile.d/maven.sh && \
-	source /etc/profile.d/maven.sh
-
-### Setup user for build execution and application runtime
 ENV APP_ROOT=/opt/app-root
-ENV PATH=${APP_ROOT}/bin:${PATH} HOME=${APP_ROOT}
-COPY bin/ ${APP_ROOT}/bin/
+ENV HOME=${APP_ROOT}
+ENV MAVEN_VERSION=3.6.3
 
-##Add Maven Settings
+#COPY docker-entrypoint.sh ${APP_ROOT}/entrypoint.sh
+COPY bin/ ${APP_ROOT}/bin/
+### Add OpenShift CLI
+COPY *.tar.gz ${APP_ROOT}/OpenShift_CLI/oc-linux.tar.gz
+
+### Centos Updates
+RUN yum install -y vim wget curl git dos2unix java-1.8.0-openjdk-devel && \
+    yum clean all
+### Maven
+RUN wget http://apache.claz.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz -P /tmp && \
+	tar -xvf /tmp/apache-maven-${MAVEN_VERSION}-bin.tar.gz -C /opt && \
+	rm -f /tmp/apache-maven-${MAVEN_VERSION}-bin.tar.gz && \
+	ln -s /opt/apache-maven-${MAVEN_VERSION} /opt/maven && \
+    mkdir -p $HOME/.m2 && chmod -R a+rwX $HOME/.m2 && \
+### OpenShift CLI
+    tar -xvf ${APP_ROOT}/OpenShift_CLI/oc-linux.tar.gz -C ${APP_ROOT}/OpenShift_CLI && \
+    rm -f ${APP_ROOT}/OpenShift_CLI/*.tar.gz && \
+### Fix Permissions
+    wget -nv https://raw.githubusercontent.com/sclorg/s2i-base-container/master/core/root/usr/bin/fix-permissions \
+	-O /usr/bin/fix-permissions && chmod +x /usr/bin/fix-permissions
+
+### Add Maven Settings
 COPY s2i-settings.xml ${APP_ROOT}/.m2/settings.xml
 
-##Add the Source Code
-#COPY somesource/ ${APP_ROOT}/somesource/
+#VOLUME ${APP_ROOT}/data
 
-##Add the Certificate to the Java KeyStore
-#COPY Cert.cer ${APP_ROOT}/Cert.cer
-#RUN echo yes | keytool -import -alias ACompany \
-#-keystore /usr/lib/jvm/jre-openjdk/lib/security/cacerts \
-#-file ${APP_ROOT}/Cert.cer \
-#-storepass changeit \
-#-trustcacerts
-
-RUN chmod -R u+x ${APP_ROOT}/bin && \
-    chgrp -R 0 ${APP_ROOT} && \
+### Update Permissions
+RUN mkdir -p ${APP_ROOT}/.kube && \
+    mkdir -p ${APP_ROOT}/data && \
+	fix-permissions ${APP_ROOT}/.kube -P && \
+    fix-permissions ${APP_ROOT}/data -P && \
+    fix-permissions ${APP_ROOT} -P && \
+	chown -R 1001:0 ${APP_ROOT} && \
+    #chmod -R 777 ${APP_ROOT}/data && \
+    chmod -R u+x ${APP_ROOT}/bin && \
+    #chmod +x ${APP_ROOT}/bin/uid_entrypoint.sh && \
+    #chmod +x ${APP_ROOT}/entrypoint.sh
     chmod -R g=u ${APP_ROOT} /etc/passwd
 
-### Containers should NOT run as root as a good practice
-USER 10001
+### Setup user for build execution and application runtime
+ENV JAVA_HOME=/usr/lib/jvm/jre-openjdk
+ENV M2_HOME=/opt/maven
+ENV MAVEN_HOME=/opt/maven
+ENV APP_ROOT=/opt/app-root
+ENV OPENSHIFT_CLI=${APP_ROOT}/OpenShift_CLI
+#Update PATH
+ENV PATH=${APP_ROOT}/bin:${JAVA_HOME}/bin:${MAVEN_HOME}/bin:${OPENSHIFT_CLI}:${PATH}
+
+USER 1001
+
 WORKDIR ${APP_ROOT}
 
-### user name recognition at runtime w/ an arbitrary uid - for OpenShift deployments
+#ENTRYPOINT ["./bin/entrypoint.sh"]
 ENTRYPOINT [ "./bin/uid_entrypoint.sh" ]
-#VOLUME ${APP_ROOT}/logs ${APP_ROOT}/data
 CMD ./bin/run.sh

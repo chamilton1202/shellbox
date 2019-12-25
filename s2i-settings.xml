@@ -3,7 +3,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
-  <localRepository>${user.home}/.m2/repository</localRepository>
+  <!-- <localRepository>${user.home}/.m2/repository</localRepository> -->
     <!-- ### configured local repository ### -->
   <servers>
     <!-- ### configured servers ### -->
@@ -275,12 +275,12 @@
 	
 	<!-- Local Nexus Repository -->
     <profile>
-      <id>nexus-local</id>
+      <id>custom-local</id>
       <repositories>
         <repository>
           <id>nexus</id>
 		  <name>nexus</name>
-          <url>https://nexus-ci-cd-tools.np-services.apria.com/repository/maven-public/</url>
+          <url>https://nexus.apps.192.168.1.216.nip.io/repository/maven-public/</url>
           <releases>
             <enabled>true</enabled>
 			<updatePolicy>always</updatePolicy>
@@ -295,7 +295,7 @@
         <pluginRepository>
           <id>nexus</id>
 		  <name>nexus</name>
-          <url>https://nexus-ci-cd-tools.np-services.apria.com/repository/maven-public/</url>
+          <url>https://nexus.apps.192.168.1.216.nip.io/repository/maven-public/</url>
           <releases>
             <enabled>true</enabled>
 			<updatePolicy>always</updatePolicy>
@@ -314,6 +314,6 @@
   <activeProfiles>
     <!-- <activeProfile>securecentral</activeProfile> -->
     <!-- ### active profiles ### -->
-	<activeProfile>nexus-local</activeProfile>
+	<activeProfile>custom-local</activeProfile>
   </activeProfiles>
 </settings>
