@@ -31,6 +31,10 @@ RUN wget http://apache.claz.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-m
 ### Add Maven Settings
 COPY s2i-settings.xml ${APP_ROOT}/.m2/settings.xml
 
+### Add Wildcard Cert
+COPY ApriaWildcard.cer ${APP_ROOT}/Cert.cer
+COPY add-cert.sh ${APP_ROOT}/bin/add-cert.sh
+
 #VOLUME ${APP_ROOT}/data
 
 ### Update Permissions
