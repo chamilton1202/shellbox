@@ -33,22 +33,8 @@ COPY s2i-settings.xml ${APP_ROOT}/.m2/settings.xml
 
 ### Add Wildcard Cert
 COPY ApriaWildcard.cer ${APP_ROOT}/Cert.cer
-COPY add-cert.sh ${APP_ROOT}/bin/add-cert.sh
 
 #VOLUME ${APP_ROOT}/data
-
-### Update Permissions
-RUN mkdir -p ${APP_ROOT}/.kube && \
-    mkdir -p ${APP_ROOT}/data && \
-	fix-permissions ${APP_ROOT}/.kube -P && \
-    fix-permissions ${APP_ROOT}/data -P && \
-    fix-permissions ${APP_ROOT} -P && \
-	chown -R 1001:0 ${APP_ROOT} && \
-    #chmod -R 777 ${APP_ROOT}/data && \
-    chmod -R u+x ${APP_ROOT}/bin && \
-    #chmod +x ${APP_ROOT}/bin/uid_entrypoint.sh && \
-    #chmod +x ${APP_ROOT}/entrypoint.sh
-    chmod -R g=u ${APP_ROOT} /etc/passwd
 
 ### Setup user for build execution and application runtime
 ENV JAVA_HOME=/usr/lib/jvm/jre-openjdk
@@ -58,6 +44,20 @@ ENV APP_ROOT=/opt/app-root
 ENV OPENSHIFT_CLI=${APP_ROOT}/OpenShift_CLI
 #Update PATH
 ENV PATH=${APP_ROOT}/bin:${JAVA_HOME}/bin:${MAVEN_HOME}/bin:${OPENSHIFT_CLI}:${PATH}
+
+### Update Permissions and Execute any additional scripts or commands
+RUN mkdir -p ${APP_ROOT}/.kube && \
+    mkdir -p ${APP_ROOT}/data && \
+	fix-permissions ${APP_ROOT}/.kube -P && \
+    fix-permissions ${APP_ROOT}/data -P && \
+    fix-permissions ${APP_ROOT} -P && \
+    chown -R 1001:0 ${APP_ROOT} && \
+    chmod -R u+x ${APP_ROOT}/bin && \
+    #chmod +x ${APP_ROOT}/bin/uid_entrypoint.sh && \
+    #chmod +x ${APP_ROOT}/entrypoint.sh
+    chmod -R g=u ${APP_ROOT} /etc/passwd && \
+    #Add any scripts or other commands here
+    ${APP_ROOT}/bin/add-cert.sh ${APP_ROOT}/Cert.cer
 
 USER 1001
 
