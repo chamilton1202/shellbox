@@ -7,7 +7,7 @@ CERT_FILE=$1
 if [ -f "${CERT_FILE}" ]; then
     echo yes | keytool -import -alias ACompany \
     -keystore /usr/lib/jvm/jre-openjdk/lib/security/cacerts \
-    -file ../Cert.cer \
+    -file ${CERT_FILE} \
     -storepass changeit \
     -trustcacerts
 else

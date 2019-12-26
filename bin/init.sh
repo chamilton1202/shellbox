@@ -2,6 +2,13 @@
 
 #source /etc/profile.d/maven.sh
 
-export PATH=${M2_HOME}/bin:${PATH}
+### Setup Git Global variables
+echo "What is your full name for Git Config?"
+read USER_NAME
+echo ""
+git config --global user.name "${USER_NAME}"
 
-mvn -version
+echo "What is your email for Git Config?"
+read USER_EMAIL
+echo ""
+git config --global user.email "${USER_EMAIL}"
