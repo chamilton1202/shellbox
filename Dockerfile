@@ -32,7 +32,7 @@ RUN wget http://apache.claz.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-m
 COPY s2i-settings.xml ${APP_ROOT}/.m2/settings.xml
 
 ### Add Wildcard Cert
-COPY ApriaWildcard.cer ${APP_ROOT}/Cert.cer
+#COPY SomeWildcard.cer ${APP_ROOT}/Cert.cer
 
 #VOLUME ${APP_ROOT}/data
 
@@ -55,9 +55,9 @@ RUN mkdir -p ${APP_ROOT}/.kube && \
     chmod -R u+x ${APP_ROOT}/bin && \
     #chmod +x ${APP_ROOT}/bin/uid_entrypoint.sh && \
     #chmod +x ${APP_ROOT}/entrypoint.sh
-    chmod -R g=u ${APP_ROOT} /etc/passwd && \
+    chmod -R g=u ${APP_ROOT} /etc/passwd
     #Add any scripts or other commands here
-    ${APP_ROOT}/bin/add-cert.sh ${APP_ROOT}/Cert.cer
+    #${APP_ROOT}/bin/add-cert.sh ${APP_ROOT}/Cert.cer
 
 USER 1001
 
